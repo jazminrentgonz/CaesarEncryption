@@ -1,0 +1,81 @@
+.data
+	plaintext: .ascii "" // Variable to hold the plaintext input
+	plaintextout: .ascii "Original: " // Message to print "Original: "
+	offsetout: .ascii "Offset: " // Message to print "Offset: "
+	offsetnumb: .ascii "  " // Variable to hold the offset input
+	outputtext: .ascii "" // Variable to hold the encrypted text output
+
+.text
+.global main 
+
+main:
+	// Print "Offset: " to prompt the user for the shift offset
+	mov r7, #4
+	mov r0, #1
+	mov r2, #8
+	ldr r1, =offsetout
+	swi 0
+
+	// Take the input for the offset
+	mov r7, #3
+	mov r0, #0
+	mov r2, #2
+	ldr r1, =offsetnumb
+	swi 0
+
+	// Print "Original: " to prompt the user for the plaintext
+	mov r7, #4
+	mov r0, #1
+	mov r2, #11
+	ldr r1, =plaintextout
+	swi 0
+
+	// Take the input for the plaintext
+	mov r7, #3
+	mov r0, #0
+	mov r2, #24
+	ldr r1, =plaintext 
+	swi 0
+
+	ldr r0, =plaintext
+	ldr r2, =outputtext
+	ldr r4, =offsetnumb 
+	bl caesarencrypt // Call the caesarencrypt subroutine
+
+	// Print the encrypted text
+	mov r7, #4
+	mov r0, #1
+	mov r2, #24
+	ldr r1, =outputtext
+	swi 0
+	bal exit 
+
+caesarencrypt:
+	ldrb r1, [r0] // Load current character from the plaintext (r1 is text address)
+	ldrb r3, [r4] // Load the offset number (r3 is offset # address)
+	sub r3, r3, #0x30 // Convert ASCII digit to its numeric value
+
+input:
+	cmp r1, #0x20 // Check if the character is a space, if so, jump to output
+	beq output 
+	cmp r1, #0x30 // Check if the character is a digit ('0' to '9'), if so, continue
+	b continue 
+
+continue: 
+	add r1, r1, r3 // Perform the Caesar cipher encryption by shifting the character by the offset
+	cmp r1, #0x7b // Check if the character is beyond 'z'
+	blt output // If not, jump to output
+	sub r1, r1, #0x7b // Adjust the character value if it goes beyond 'z'
+	add r1, r1, #0x61 // Wrap around to 'a'
+
+output: 
+	strb r1, [r2], #1 // Store the encrypted character in outputtext
+	ldrb r1, [r0, #1]! // Load the next character from the plaintext
+	cmp r1, #0x0a // Check if the character is a newline
+	bne input // If not, continue to input
+	bx lr // Return from subroutine
+
+exit:
+	// Exit syscall 
+	mov r7, #1
+	swi 0
