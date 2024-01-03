@@ -5,7 +5,9 @@ This project repository houses an ARM assembly language implementation of a Caes
 
 ### Compiling Outcome: 
 Offset: 3
+
 Original: professor
+
 surihvvru //output shifted 3 from "Original"
 
  ![image](https://github.com/jazminrentgonz/CaesarEncryption/assets/70347153/f3b5fc3c-a18a-4a27-9f4e-9d15d8171616)
